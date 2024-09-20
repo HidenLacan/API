@@ -21,9 +21,6 @@ class Book(models.Model):
         return self.title
     
 
-
-
-
 class UserManager(BaseUserManager):
     def create_user(self, email, username, password=None):
         if not email:
@@ -42,7 +39,8 @@ class UserManager(BaseUserManager):
     def create_superuser(self, email, username, password=None):
         user = self.create_user(email, username, password)
         user.is_superuser = True
-        user.is_staff = True
+        user.is_staff = True  # Superusers are always staff
+        user.is_admin = True  # Keep this if you still use 'is_admin' elsewhere
         user.save(using=self._db)
         return user
 
@@ -51,8 +49,8 @@ class User(AbstractBaseUser):
     username = models.CharField(max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
-    is_staff = models.BooleanField(default=False)  # This is required for admin access
-    is_superuser = models.BooleanField(default=False)  # This is required for superuser privileges
+    is_staff = models.BooleanField(default=False)  # Determines admin access
+    is_superuser = models.BooleanField(default=False)  # Determines superuser privileges
 
     objects = UserManager()
 
@@ -62,12 +60,12 @@ class User(AbstractBaseUser):
     def __str__(self):
         return self.email
 
+    # Permissions logic
     def has_perm(self, perm, obj=None):
-        return self.is_admin
+        return self.is_staff or self.is_superuser
 
     def has_module_perms(self, app_label):
-        return self.is_admin
-
+        return self.is_staff or self.is_superuser
 
 
 

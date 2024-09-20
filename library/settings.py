@@ -146,9 +146,9 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Additional locations of static files
-STATICFILES_DIRS = [
-    BASE_DIR / "static",  # Add your custom static files directory here
-]
+#STATICFILES_DIRS = [
+ #   BASE_DIR / "static",  # Add your custom static files directory here
+#]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
