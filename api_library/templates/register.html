@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Registration</title>
+</head>
+<body>
+    <h1>Register</h1>
+    <form method="post" id="register-form">
+        {% csrf_token %} <!-- Django CSRF token for security -->
+        
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br><br>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br><br>
+
+        <input type="submit" value="Register">
+    </form>
+
+    <div id="response"></div>
+
+    <script>
+        document.getElementById('register-form').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevent the form from submitting the traditional way
+
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // Send data to the register API endpoint
+            fetch('/api/register/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    email: email,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.detail) {
+                    document.getElementById('response').innerHTML = `<p>${data.detail}</p>`;
+                } else {
+                    document.getElementById('response').innerHTML = `<p>Error: ${JSON.stringify(data)}</p>`;
+                }
+            })
+            .catch(error => {
+                document.getElementById('response').innerHTML = `<p>Error: ${error}</p>`;
+            });
+        });
+    </script>
+</body>
+</html>
