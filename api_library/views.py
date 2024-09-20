@@ -29,7 +29,15 @@ from sklearn.metrics.pairwise import cosine_similarity
 class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]  
     
+    def get_permissions(self):
+        # Allow GET requests without authentication
+        if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return [permission() for permission in self.permission_classes]
+        # Require authentication for POST, PUT, and DELETE actions
+        return [IsAuthenticated()]
     
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
@@ -39,11 +47,11 @@ class BookViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'author__name']
 
     def get_permissions(self):
-        if self.request.method in ['POST', 'PUT', 'DELETE']:
-            self.permission_classes = [IsAuthenticated]
-        else:
-            self.permission_classes = [IsAuthenticatedOrReadOnly]
-        return super().get_permissions()
+        # Allow GET requests without authentication
+        if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return [permission() for permission in self.permission_classes]
+        # Require authentication for POST, PUT, and DELETE actions
+        return [IsAuthenticated()]
 
     def create(self, request, *args, **kwargs):
         # Check if the request contains a list of books
@@ -58,10 +66,6 @@ class BookViewSet(viewsets.ModelViewSet):
             return super().create(request, *args, **kwargs)
 
     def perform_bulk_create(self, serializer):
-        # Use bulk_create for more efficiency when saving many records
-       # books = [Book(**validated_data) for validated_data in serializer.validated_data]
-        #Book.objects.bulk_create(books)
-        
         serializer.save()
 
 @api_view(['GET', 'POST'])
@@ -179,37 +183,7 @@ def get_recommendations(request):
 
 
 
-# def recommend_books(user):
-#     # Cache key for recommendations
-#     cache_key = f'recommendations_{user.id}'
-#     recommended_books = cache.get(cache_key)
 
-#     if not recommended_books:
-#         favorite = Favorite.objects.get(user=user)
-#         favorite_books = favorite.books.all()
-#         authors = favorite_books.values_list('author', flat=True)
-
-#         recommended_books = Book.objects.filter(
-#             Q(author__in=authors)
-#         ).exclude(id__in=favorite_books.values_list('id', flat=True))[:5]
-
-#         cache.set(cache_key, recommended_books, timeout=60*60)  # Cache for 1 hour
-
-#     return recommended_books
-
-    
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-# def get_recommendations(request):
-#     recommended_books = recommend_books(request.user)
-#     if recommended_books:
-#         # Assuming you have a BookSerializer to serialize the data
-#         serializer = BookSerializer(recommended_books, many=True)
-#         return Response(serializer.data, status=200)
-#     else:
-#         return Response({"detail": "No recommendations available."}, status=404)
-    
-    
     
 
 
